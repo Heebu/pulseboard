@@ -12,7 +12,7 @@ class HRVChart extends StatelessWidget {
     super.key,
     required this.data,
     required this.syncController,
-    required this.color,
+    required this.color, required syncContricler,
   });
 
   @override

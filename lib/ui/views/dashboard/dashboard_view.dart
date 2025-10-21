@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import '../../common/styles/colors.dart';
 import '../../common/widgets/chart_card.dart';
-import '../../common/widgets/empty_view.dart';
-import '../../common/widgets/error_view.dart';
-import '../../common/widgets/loading_view.dart';
 import 'dashboard_viewmodel.dart';
-
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -14,87 +11,105 @@ class DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<DashboardViewModel>.reactive(
       viewModelBuilder: () => DashboardViewModel(),
-      onViewModelReady: (viewModel) => viewModel.init(),
-      builder: (context, viewModel, child) {
+      onViewModelReady: (model) => model.init(),
+      builder: (context, model, child) {
         return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: AppColors.background,
+          drawer: const AppDrawer(),
           appBar: AppBar(
-            title: const Text('Biometrics Dashboard'),
-            centerTitle: true,
-          ),
-          body: SafeArea(
-            child: _buildBody(viewModel),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBody(DashboardViewModel vm) {
-    switch (vm.state) {
-      case DataState.loading:
-        return const LoadingSkeleton();
-      case DataState.error:
-        return ErrorView(onRetry: vm.retry);
-      case DataState.empty:
-        return const EmptyView();
-      case DataState.success:
-        return _buildDashboard(vm);
-    }
-  }
-
-  Widget _buildDashboard(DashboardViewModel vm) {
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        _buildRangeSelector(vm),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(12),
-            children: [
-              ChartCard(
-                title: 'HRV (Heart Rate Variability)',
-                color: Colors.blueAccent,
-                data: vm.biometrics.map((e) => e.hrv ?? 0).toList(),
-                labels: vm.biometrics.map((e) => e.date).toList(),
-              ),
-              ChartCard(
-                title: 'RHR (Resting Heart Rate)',
-                color: Colors.redAccent,
-                data: vm.biometrics.map((e) => (e.rhr ?? 0).toDouble()).toList(),
-                labels: vm.biometrics.map((e) => e.date).toList(),
-              ),
-              ChartCard(
-                title: 'Steps Count',
-                color: Colors.greenAccent,
-                data: vm.biometrics.map((e) => (e.steps ?? 0).toDouble()).toList(),
-                labels: vm.biometrics.map((e) => e.date).toList(),
+            title: const Text("Dashboard"),
+            backgroundColor: AppColors.primary,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: model.refreshDashboard,
               ),
             ],
           ),
-        ),
-      ],
-    );
-  }
+          body: model.isBusy
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+            onRefresh: () async => model.refreshDashboard(),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Stats Section
+                  Text(
+                    "Overview",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
 
-  Widget _buildRangeSelector(DashboardViewModel vm) {
-    final ranges = ['7d', '30d', '90d'];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: ranges.map((r) {
-          final selected = vm.selectedRange == r;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: ChoiceChip(
-              label: Text(r),
-              selected: selected,
-              onSelected: (_) => vm.changeRange(r),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    children: [
+                      DashboardTile(
+                        icon: Icons.people,
+                        title: "Users",
+                        value: model.totalUsers.toString(),
+                        color: AppColors.primary,
+                      ),
+                      DashboardTile(
+                        icon: Icons.article,
+                        title: "News Articles",
+                        value: model.totalArticles.toString(),
+                        color: AppColors.secondary,
+                      ),
+                      DashboardTile(
+                        icon: Icons.comment,
+                        title: "Comments",
+                        value: model.totalComments.toString(),
+                        color: Colors.teal,
+                      ),
+                      DashboardTile(
+                        icon: Icons.analytics,
+                        title: "Engagement",
+                        value: "${model.engagementRate}%",
+                        color: Colors.deepOrange,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Charts Section
+                  Text(
+                    "Analytics",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+
+                  ChartCard(
+                    title: "User Growth",
+                    data: model.userGrowthData,
+                    labels: model.userGrowthLabels,
+                    color: AppColors.primary,
+                  ),
+                  ChartCard(
+                    title: "Article Engagement",
+                    data: model.articleEngagementData,
+                    labels: model.articleEngagementLabels,
+                    color: AppColors.secondary,
+                  ),
+                ],
+              ),
             ),
-          );
-        }).toList(),
-      ),
+          ),
+        );
+      },
     );
   }
 }

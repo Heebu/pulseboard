@@ -16,7 +16,7 @@ class JournalViewModel extends BaseViewModel {
     _isLoading = true;
     notifyListeners();
 
-    _entries = await _dataService.fetchJournalEntries();
+    _entries = await _dataService.fetchJournals();
 
     _isLoading = false;
     notifyListeners();

@@ -1,52 +1,51 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/services.dart';
 import '../models/biometrics_model.dart';
 import '../models/journal_model.dart';
+import 'cache_service.dart';
+import 'dart:math';
 
 class DataService {
-  final Random _random = Random();
+  final _cache = CacheService();
 
-  /// Simulate latency (700–1200ms) and ~10% random failure
-  Future<T> _simulateNetwork<T>(Future<T> Function() action) async {
-    final delay = Duration(milliseconds: 700 + _random.nextInt(500));
-    await Future.delayed(delay);
+  Future<List<BiometricsModel>> fetchBiometrics() async {
+    const key = 'biometrics_data';
 
-    if (_random.nextInt(100) < 10) {
-      throw Exception("Simulated network failure");
+    if (_cache.containsKey(key)) {
+      final cached = _cache.getData(key);
+      return (json.decode(cached) as List)
+          .map((e) => BiometricsModel.fromJson(e))
+          .toList();
     }
 
-    return await action();
+    // Simulate latency + random failure
+    await Future.delayed(Duration(milliseconds: 700 + Random().nextInt(500)));
+    if (Random().nextDouble() < 0.1) throw Exception('Network error simulated.');
+
+    final response = await rootBundle.loadString('assets/data/biometrics_90d.json');
+    _cache.saveData(key, response);
+
+    final data = json.decode(response) as List;
+    return data.map((e) => BiometricsModel.fromJson(e)).toList();
   }
 
-  /// Load biometrics data from assets
-  Future<List<BiometricsModel>> loadBiometrics() async {
-    return _simulateNetwork(() async {
-      final data = await rootBundle.loadString('assets/data/biometrics_90d.json');
-      final List<dynamic> jsonList = jsonDecode(data);
+  Future<List<JournalEntry>> fetchJournals() async {
+    const key = 'journal_data';
 
-      return jsonList
-          .map((e) => BiometricsModel.fromJson(e))
-          .where((b) =>
-      b.hrv != null && b.rhr != null && b.steps != null)
+    if (_cache.containsKey(key)) {
+      final cached = _cache.getData(key);
+      return (json.decode(cached) as List)
+          .map((e) => JournalEntry.fromJson(e))
           .toList();
-    });
-  }
+    }
 
-  /// Load journal data from assets
-  Future<List<JournalEntry>> loadJournals() async {
-    return _simulateNetwork(() async {
-      final data = await rootBundle.loadString('assets/data/journals.json');
-      final List<dynamic> jsonList = jsonDecode(data);
+    await Future.delayed(Duration(milliseconds: 700 + Random().nextInt(500)));
+    if (Random().nextDouble() < 0.1) throw Exception('Network error simulated.');
 
-      return jsonList.map((e) => JournalEntry.fromJson(e)).toList();
-    });
-  }
-
-  Future<List<JournalEntry>> fetchJournalEntries() async {
     final response = await rootBundle.loadString('assets/data/journals.json');
+    _cache.saveData(key, response);
+
     final data = json.decode(response) as List;
     return data.map((e) => JournalEntry.fromJson(e)).toList();
   }
-
 }
