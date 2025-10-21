@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "date": "2025-10-18",
+    "title": "Morning Run",
+    "content": "Had a great run today, heart rate stayed below 130 bpm.",
+    "mood": "happy",
+    "moodScore": 5,
+    "relatedMetric": "heart_rate"
+  },
+  {
+    "id": "2",
+    "date": "2025-10-19",
+    "title": "Tired Evening",
+    "content": "Felt exhausted after a long day, probably due to poor sleep.",
+    "mood": "sad",
+    "moodScore": 2,
+    "relatedMetric": "sleep"
+  }
+]

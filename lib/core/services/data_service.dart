@@ -34,12 +34,19 @@ class DataService {
   }
 
   /// Load journal data from assets
-  Future<List<JournalModel>> loadJournals() async {
+  Future<List<JournalEntry>> loadJournals() async {
     return _simulateNetwork(() async {
       final data = await rootBundle.loadString('assets/data/journals.json');
       final List<dynamic> jsonList = jsonDecode(data);
 
-      return jsonList.map((e) => JournalModel.fromJson(e)).toList();
+      return jsonList.map((e) => JournalEntry.fromJson(e)).toList();
     });
   }
+
+  Future<List<JournalEntry>> fetchJournalEntries() async {
+    final response = await rootBundle.loadString('assets/data/journals.json');
+    final data = json.decode(response) as List;
+    return data.map((e) => JournalEntry.fromJson(e)).toList();
+  }
+
 }

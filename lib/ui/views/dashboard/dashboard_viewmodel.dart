@@ -1,6 +1,6 @@
+import 'package:pulseboard/core/models/journal_model.dart';
 import 'package:stacked/stacked.dart';
 import '../../../core/models/biometrics_model.dart';
-import '../../../core/models/journal_model.dart';
 import '../../../core/services/data_service.dart';
 
 enum DataState { loading, success, error, empty }
@@ -12,10 +12,10 @@ class DashboardViewModel extends BaseViewModel {
   DataState get state => _state;
 
   List<BiometricsModel> _biometrics = [];
-  List<JournalModel> _journals = [];
+  List<JournalEntry> _journals = [];
 
   List<BiometricsModel> get biometrics => _filteredBiometrics;
-  List<JournalModel> get journals => _journals;
+  List<JournalEntry> get journals => _journals;
 
   String _selectedRange = '7d';
   String get selectedRange => _selectedRange;
