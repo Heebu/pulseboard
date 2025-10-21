@@ -1,114 +1,87 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
-import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
-import '../../../core/models/biometrics_model.dart';
-import '../../../core/models/journal_model.dart';
-import '../../../core/services/decimation_service.dart';
 
-enum DataState { loading, success, error, empty }
+import '../../../app/setup.dart';
 
 class DashboardViewModel extends BaseViewModel {
-  DataState _state = DataState.loading;
-  DataState get state => _state;
 
-  List<BiometricsModel> _allData = [];
-  List<BiometricsModel> _filteredData = [];
-  List<JournalModel> _journals = [];
+  // Dashboard metrics
+  int totalUsers = 0;
+  int totalArticles = 0;
+  int totalComments = 0;
+  double engagementRate = 0;
 
-  String _selectedRange = '90d';
-  String get selectedRange => _selectedRange;
+  List<double> userGrowthData = [];
+  List<double> articleEngagementData = [];
+  List<String> userGrowthLabels = [];
+  List<String> articleEngagementLabels = [];
 
-  bool _largeDatasetMode = false;
-  bool get largeDatasetMode => _largeDatasetMode;
+  bool _isRefreshing = false;
+  bool get isRefreshing => _isRefreshing;
 
-  List<BiometricsModel> get biometrics => _filteredData;
-  List<JournalModel> get journals => _journals;
+  Timer? _timer;
 
-  final _random = Random();
-
-  Future<void> init() async {
-    _setState(DataState.loading);
-
-    try {
-      await Future.delayed(Duration(milliseconds: 700 + _random.nextInt(500)));
-
-      // Simulate ~10% random failure
-      if (_random.nextInt(10) == 0) throw Exception('Simulated network error');
-
-      final bioString = await rootBundle.loadString('assets/data/biometrics_90d.json');
-      final journalString = await rootBundle.loadString('assets/data/journals.json');
-
-      final List<dynamic> bioJson = json.decode(bioString);
-      final List<dynamic> journalJson = json.decode(journalString);
-
-      _allData = bioJson.map((e) => BiometricsModel.fromJson(e)).toList();
-      _journals = journalJson.map((e) => JournalModel.fromJson(e)).toList();
-
-      if (_allData.isEmpty) {
-        _setState(DataState.empty);
-        return;
-      }
-
-      _applyRangeFilter();
-      _setState(DataState.success);
-    } catch (e) {
-      _setState(DataState.error);
-    }
+  DashboardViewModel() {
+    _initData();
+    _simulateLiveData();
   }
 
-  void retry() => init();
+  void _initData() {
+    totalUsers = 1200;
+    totalArticles = 340;
+    totalComments = 980;
+    engagementRate = 74.5;
 
-  void changeRange(String range) {
-    _selectedRange = range;
-    _applyRangeFilter();
+    userGrowthData = [120, 150, 180, 200, 230, 250, 300];
+    articleEngagementData = [60, 90, 120, 150, 180, 200, 210];
+    userGrowthLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    articleEngagementLabels = ["Week 1", "Week 2", "Week 3", "Week 4"];
+  }
+
+  void _simulateLiveData() {
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+      totalUsers += 5;
+      totalArticles += 2;
+      totalComments += 8;
+      engagementRate = (engagementRate + 0.2) % 100;
+      rebuildUi();
+    });
+  }
+
+  Future<void> refreshDashboard() async {
+    _isRefreshing = true;
     notifyListeners();
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    totalUsers += 10;
+    totalArticles += 3;
+    totalComments += 5;
+    engagementRate += 1.5;
+
+    _isRefreshing = false;
+    rebuildUi();
   }
 
-  void toggleLargeDatasetMode() {
-    _largeDatasetMode = !_largeDatasetMode;
-    _applyRangeFilter();
-    notifyListeners();
-  }
-
-  void _applyRangeFilter() {
-    int days;
-    switch (_selectedRange) {
-      case '7d':
-        days = 7;
+  void onTileTap(String title) {
+    switch (title) {
+      case 'Users':
+        print("Navigating to Users screen...");
         break;
-      case '30d':
-        days = 30;
+      case 'Articles':
+        print("Navigating to Articles screen...");
         break;
-      case '90d':
+      case 'Comments':
+        print("Navigating to Comments screen...");
+        break;
       default:
-        days = 90;
-        break;
-    }
-
-    final cutoffDate = DateTime.now().subtract(Duration(days: days));
-    _filteredData = _allData.where((d) => d.date.isAfter(cutoffDate)).toList();
-
-    // Simulate large dataset mode
-    if (_largeDatasetMode) {
-      _filteredData = List.generate(
-        10000,
-            (i) => _filteredData[i % _filteredData.length].copyWith(
-          date: DateTime.now().subtract(Duration(days: i % 365)),
-        ),
-      );
-    }
-
-    // Apply downsampling for large datasets
-    if (_filteredData.length > 500) {
-      final decimator = DecimationService();
-      _filteredData = decimator.decimate(_filteredData);
+        print("Tapped on $title tile.");
     }
   }
 
-  void _setState(DataState newState) {
-    _state = newState;
-    notifyListeners();
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }

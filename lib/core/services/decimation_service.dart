@@ -1,4 +1,3 @@
-import 'dart:math';
 import '../models/biometrics_model.dart';
 
 /// Data decimation / downsampling service.
@@ -6,12 +5,23 @@ import '../models/biometrics_model.dart';
 class DecimationService {
   /// Applies downsampling to keep datasets lightweight.
   /// [threshold] defines the maximum number of points to retain.
-  List<BiometricsModel> decimate(
-      List<BiometricsModel> data, {
-        int threshold = 500,
-      }) {
-    if (data.length <= threshold) return data;
-    return _largestTriangleThreeBuckets(data, threshold);
+  List<double> decimate(List<double> data, int maxPoints) {
+    if (data.length <= maxPoints) return data;
+
+    final ratio = data.length / maxPoints;
+    final List<double> result = [];
+
+    for (int i = 0; i < maxPoints; i++) {
+      final start = (i * ratio).floor();
+      final end = ((i + 1) * ratio).floor();
+      if (start >= data.length) break;
+
+      final segment = data.sublist(start, end.clamp(start + 1, data.length));
+      final avg = segment.reduce((a, b) => a + b) / segment.length;
+      result.add(avg);
+    }
+
+    return result;
   }
 
   /// Implements the LTTB (Largest-Triangle-Three-Buckets) algorithm.
