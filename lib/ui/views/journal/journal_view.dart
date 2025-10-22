@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pulseboard/ui/views/journal/widget/journal_card.dart';
 import 'package:stacked/stacked.dart';
-import '../../common/widgets/loading_view.dart';
 import 'journal_viewmodel.dart';
-
 
 class JournalView extends StatelessWidget {
   const JournalView({super.key});
@@ -12,20 +9,31 @@ class JournalView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<JournalViewModel>.reactive(
       viewModelBuilder: () => JournalViewModel(),
-      onViewModelReady: (vm) => vm.loadJournals(),
-      builder: (context, vm, child) {
-        if (vm.isLoading) return const LoadingSkeleton();
-
+      builder: (context, model, child) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Journal Entries')),
-          body: vm.entries.isEmpty
-              ? const Center(child: Text('No journal entries found.'))
+          appBar: AppBar(
+            title: const Text("Journal"),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: model.addNewJournal,
+              ),
+            ],
+          ),
+          body: model.isBusy
+              ? const Center(child: CircularProgressIndicator())
+              : model.journals.isEmpty
+              ? const Center(child: Text("No journal entries yet"))
               : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: vm.entries.length,
+            itemCount: model.journals.length,
             itemBuilder: (context, index) {
-              final entry = vm.entries[index];
-              return JournalCard(entry: entry);
+              final journal = model.journals[index];
+              return ListTile(
+                title: Text(journal.title),
+                subtitle: Text(journal.date.toString()),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => model.navigateToJournalDetail(journal, context),
+              );
             },
           ),
         );

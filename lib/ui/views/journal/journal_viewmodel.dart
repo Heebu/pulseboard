@@ -1,33 +1,27 @@
+import 'package:pulseboard/core/models/journal_model.dart';
+import 'package:pulseboard/ui/views/chart_detail/chart_detail_view.dart';
 import 'package:stacked/stacked.dart';
-import '../../../app/setup.dart';
-import '../../../core/models/journal_model.dart';
-import '../../../core/services/data_service.dart';
+import 'package:flutter/material.dart';
 
 class JournalViewModel extends BaseViewModel {
-  final _dataService = locator<DataService>();
 
-  List<JournalEntry> _entries = [];
-  List<JournalEntry> get entries => _entries;
+  List<JournalEntry> journals = [];
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  Future<void> loadJournals() async {
-    _isLoading = true;
-    notifyListeners();
-
-    _entries = await _dataService.fetchJournals();
-
-    _isLoading = false;
+  void addNewJournal() {
+    // For now, mock adding a new journal entry
+    journals.add(
+      JournalEntry(
+        title: "New Entry #${journals.length + 1}",
+        date: DateTime.now(),
+        content: "This is a mock journal entry",
+        id: DateTime.now().toString(),
+        mood: '',
+      ),
+    );
     notifyListeners();
   }
 
-  List<JournalEntry> getEntriesForDate(DateTime date) {
-    return _entries
-        .where((e) =>
-    e.date.year == date.year &&
-        e.date.month == date.month &&
-        e.date.day == date.day)
-        .toList();
+  void navigateToJournalDetail(JournalEntry journal, context) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ChartDetailView(chartType: 'journal'),));
   }
 }

@@ -22,32 +22,35 @@ class DashboardTile extends StatelessWidget {
       onTap: onTap,
       child: Card(
         elevation: 2,
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          height: 100,
+
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CircleAvatar(
                 backgroundColor: color.withOpacity(0.15),
-                child: Icon(icon, color: color),
+                radius: 100,
+                child: Icon(icon, color: color, size: 50,),
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: Colors.grey[700])),
-                    const SizedBox(height: 4),
-                    Text(value,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        )),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: Colors.grey[700])),
+                  const SizedBox(height: 4),
+                  Text(value,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      )),
+                ],
               ),
             ],
           ),

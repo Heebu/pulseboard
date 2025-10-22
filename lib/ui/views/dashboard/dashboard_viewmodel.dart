@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-import '../../../app/setup.dart';
+import '../chart_detail/chart_detail_view.dart';
+
 
 class DashboardViewModel extends BaseViewModel {
 
@@ -11,6 +13,7 @@ class DashboardViewModel extends BaseViewModel {
   int totalComments = 0;
   double engagementRate = 0;
 
+  // Chart data
   List<double> userGrowthData = [];
   List<double> articleEngagementData = [];
   List<String> userGrowthLabels = [];
@@ -32,6 +35,7 @@ class DashboardViewModel extends BaseViewModel {
     totalComments = 980;
     engagementRate = 74.5;
 
+    // Mock chart data
     userGrowthData = [120, 150, 180, 200, 230, 250, 300];
     articleEngagementData = [60, 90, 120, 150, 180, 200, 210];
     userGrowthLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -63,20 +67,24 @@ class DashboardViewModel extends BaseViewModel {
     rebuildUi();
   }
 
-  void onTileTap(String title) {
-    switch (title) {
-      case 'Users':
-        print("Navigating to Users screen...");
-        break;
-      case 'Articles':
-        print("Navigating to Articles screen...");
-        break;
-      case 'Comments':
-        print("Navigating to Comments screen...");
-        break;
-      default:
-        print("Tapped on $title tile.");
-    }
+  void onTileTap(String title, context) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ChartDetailView(chartType: title),));
+    // switch (title) {
+    //   case 'Users':
+    //    Navigator.push(context, MaterialPageRoute(builder: (context) => ChartDetailView(chartType: title),));
+    //     break;
+    //   case 'Articles':
+    //     Navigator.push(context, MaterialPageRoute(builder: (context) => ChartDetailView(chartType: 'users'),));
+    //     break;
+    //   case 'Comments':
+    //     Navigator.push(context, MaterialPageRoute(builder: (context) => ChartDetailView(chartType: 'users'),));
+    //     break;
+    //   case 'Engagement':
+    //     Navigator.push(context, MaterialPageRoute(builder: (context) => ChartDetailView(chartType: 'users'),));
+    //     break;
+    //   default:
+    //     print("Tapped on $title tile.");
+    // }
   }
 
   @override
